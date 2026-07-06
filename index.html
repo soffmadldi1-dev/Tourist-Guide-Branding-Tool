@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>나만의 가이드 브랜드 만들기 · 관광통역안내사 퍼스널 브랜딩</title>
+<title>가이드 브랜드 스튜디오 · 관광통역안내사 퍼스널 브랜딩</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
@@ -215,7 +215,7 @@
 
   <header>
     <span class="brand"><span class="dot"></span>관광통역안내사 퍼스널 브랜딩</span>
-    <h1>나만의 <span class="pt">가이드 브랜드</span> 만들기</h1>
+    <h1><span class="pt">가이드 브랜드</span> 스튜디오</h1>
     <p class="lead">질문을 따라 답하면, 브랜딩 문구·이력서·자기소개서를 만드는 나만의 AI 프롬프트 3종이 완성됩니다.</p>
   </header>
 
@@ -255,6 +255,10 @@
       <div class="label">안내 가능한 언어</div>
       <div class="sub">자신 있는 언어를 모두 눌러주세요</div>
       <div class="opts" id="opt-lang"></div>
+      <div class="custom-wrap">
+        <div class="custom-label">✏️ 목록에 없는 언어는 직접 적어주세요</div>
+        <input type="text" class="mini" id="in-lang-custom" placeholder="예) 몽골어 / 이탈리아어 / 힌디어" oninput="syncCustom()">
+      </div>
     </div>
 
     <div class="nav">
@@ -526,7 +530,7 @@ const TARGETS = [
 ];
 
 /* ───────── 상태 ───────── */
-const state = {name:'', langs:[], fields:[], fieldCustom:'', careers:[], careerCustom:'', traits:[], traitCustom:'', num:'', mode:'', targets:[],
+const state = {name:'', langs:[], langCustom:'', fields:[], fieldCustom:'', careers:[], careerCustom:'', traits:[], traitCustom:'', num:'', mode:'', targets:[],
   q1:'', q2:'', q3:'', q4:'', q5:'', q6:''};
 let cur = 0;
 function syncQ(){
@@ -538,6 +542,7 @@ function syncQ(){
   state.q6 = document.getElementById('in-q6').value.trim();
 }
 function syncCustom(){
+  state.langCustom   = (document.getElementById('in-lang-custom')||{value:''}).value.trim();
   state.fieldCustom  = document.getElementById('in-field-custom').value.trim();
   state.careerCustom = document.getElementById('in-career-custom').value.trim();
   state.traitCustom  = document.getElementById('in-trait-custom').value.trim();
@@ -580,7 +585,7 @@ function flash(el){ el.style.borderColor='var(--rausch)'; setTimeout(()=>el.styl
 /* ───────── 검증 ───────── */
 function validate1(){
   state.name = document.getElementById('in-name').value.trim();
-  document.getElementById('next1').disabled = !(state.name && state.langs.length>0);
+  document.getElementById('next1').disabled = !(state.name && (state.langs.length>0 || state.langCustom));
 }
 function validateAll(){
   validate1();
@@ -601,13 +606,20 @@ function go(n){
 }
 
 /* ───────── 문구 생성 로직 ───────── */
-function langText(){
+function langNames(){
   const names = state.langs.map(id=>LANGS.find(l=>l.id===id).label);
+  if(state.langCustom){
+    state.langCustom.split(/[\/,·]+/).map(s=>s.trim()).filter(Boolean).forEach(s=>names.push(s));
+  }
+  return names;
+}
+function langText(){
+  const names = langNames();
   if(names.length===1) return names[0];
   if(names.length===2) return names.join('·');
   return names.slice(0,2).join('·')+' 등 '+names.length+'개 언어';
 }
-function langPlain(){ return state.langs.map(id=>LANGS.find(l=>l.id===id).label).join(', '); }
+function langPlain(){ return langNames().join(', '); }
 function fieldObjs(){
   const arr = state.fields.map(id=>FIELDS.find(f=>f.id===id));
   if(state.fieldCustom){
@@ -992,9 +1004,9 @@ function copyCover(){ doCopy(coverCache, document.getElementById('cover-copy'));
 function esc(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 function restart(){
-  Object.assign(state,{name:'',langs:[],fields:[],fieldCustom:'',careers:[],careerCustom:'',traits:[],traitCustom:'',mode:'',targets:[],q1:'',q2:'',q3:'',q4:'',q5:'',q6:''});
+  Object.assign(state,{name:'',langs:[],langCustom:'',fields:[],fieldCustom:'',careers:[],careerCustom:'',traits:[],traitCustom:'',num:'',mode:'',targets:[],q1:'',q2:'',q3:'',q4:'',q5:'',q6:''});
   document.getElementById('in-name').value='';
-  ['in-q1','in-q2','in-q3','in-q4','in-q5','in-q6','in-field-custom','in-career-custom','in-trait-custom'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
+  ['in-q1','in-q2','in-q3','in-q4','in-q5','in-q6','in-lang-custom','in-field-custom','in-career-custom','in-trait-custom','in-num'].forEach(id=>{const el=document.getElementById(id); if(el) el.value='';});
   document.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));
   validateAll();
   go(0);
@@ -1005,10 +1017,10 @@ function copyBrand(){
 
 /* ── 도구 링크 복사 ──
    배포 주소가 바뀌면 아래 TOOL_URL 한 줄만 수정하면 됩니다. */
-const TOOL_URL = 'https://soffmadldi1-dev.github.io/branding-tool/';
+const TOOL_URL = 'https://soffmadldi1-dev.github.io/Tourist-Guide-Branding-Tool/';
 function copyToolLink(){
   const btn = document.getElementById('link-copy');
-  const msg = '나만의 가이드 브랜드 만들기 (관광통역안내사 퍼스널 브랜딩 도구)\n' + TOOL_URL;
+  const msg = '가이드 브랜드 스튜디오 — 관광통역안내사 퍼스널 브랜딩 도구\n' + TOOL_URL;
   doCopy(msg, btn);
 }
 
